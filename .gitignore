@@ -17,3 +17,6 @@ __pycache__/
 *.log
 *.env
 
+*.json
+presigned.json
+outputs.json
