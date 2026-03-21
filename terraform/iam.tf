@@ -87,3 +87,65 @@ resource "aws_iam_role_policy" "image_processor" {
     ]
   })
 }
+
+data "aws_caller_identity" "current" {}
+
+resource "aws_iam_role" "github_actions" {
+  name = "${var.project_name}-github-actions-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Federated = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/token.actions.githubusercontent.com" }
+      Action    = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        }
+        StringLike = {
+          # Solo el repo correcto puede asumir este rol
+          "token.actions.githubusercontent.com:sub" = "repo:SantiagoAlbi/ecommercex100:*"
+        }
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "github_actions" {
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = ["s3:GetObject", "s3:PutObject", "s3:ListBucket"]
+        Resource = [
+          "arn:aws:s3:::x100-ecommerce-tfstate",
+          "arn:aws:s3:::x100-ecommerce-tfstate/*"
+        ]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:DeleteItem"]
+        Resource = "arn:aws:dynamodb:us-east-1:${data.aws_caller_identity.current.account_id}:table/terraform-locks"
+      },
+      {
+        Effect   = "Allow"
+        Action   = "lambda:UpdateFunctionCode"
+        Resource = "arn:aws:lambda:us-east-1:${data.aws_caller_identity.current.account_id}:function:x100-ecommerce-*"
+      },
+      {
+        # Permisos para terraform plan/apply sobre todos los recursos del proyecto
+        Effect = "Allow"
+        Action = [
+          "s3:*", "sqs:*", "dynamodb:*", "cognito-idp:*",
+          "apigateway:*", "lambda:*", "cloudfront:*",
+          "cloudwatch:*", "sns:*", "iam:*", "logs:*"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
