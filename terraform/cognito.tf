@@ -31,6 +31,6 @@ resource "aws_cognito_user" "test_user" {
     email_verified = "true"
   }
 
-  password = "Test1234!"
-  message_action     = "SUPPRESS"
+  password       = "Test1234!"
+  message_action = "SUPPRESS"
 }
