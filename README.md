@@ -166,4 +166,23 @@ Based on AWS public pricing (us-east-1). Estimated for ~10,000 image uploads/mon
 - **x1000**: Replace SQS standard queue with FIFO if ordering matters. Add Lambda reserved concurrency per function. Consider Aurora Serverless over DynamoDB if relational queries become necessary.
 - **Multi-region**: Add S3 Cross-Region Replication on processed bucket. Route53 latency-based routing in front of CloudFront.
 - **Cost reduction**: Move Lambdas to ARM (Graviton2) — same performance, 20% cheaper. Use S3 Intelligent-Tiering instead of manual lifecycle rules.
-#
+
+## Testing
+
+With the infrastructure deployed, run the end-to-end test script from the repo root:
+```bash
+./test.sh                        # uses a synthetic image
+./test.sh path/to/image.jpg      # uses a real image
+```
+
+The script runs the full user flow:
+
+1. Reads API, CloudFront and DynamoDB endpoints from Terraform outputs
+2. Authenticates with Cognito and obtains a JWT
+3. Requests a presigned upload URL from API Gateway
+4. Uploads the image directly to S3
+5. Waits for the SQS → Lambda processing pipeline
+6. Verifies the WebP variants are indexed in DynamoDB
+7. Confirms CloudFront serves each variant (thumb, medium, large)
+
+**Requirements:** `aws cli`, `curl`, `jq`, and a deployed infrastructure (`terraform apply`).
