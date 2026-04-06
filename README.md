@@ -166,3 +166,4 @@ Based on AWS public pricing (us-east-1). Estimated for ~10,000 image uploads/mon
 - **x1000**: Replace SQS standard queue with FIFO if ordering matters. Add Lambda reserved concurrency per function. Consider Aurora Serverless over DynamoDB if relational queries become necessary.
 - **Multi-region**: Add S3 Cross-Region Replication on processed bucket. Route53 latency-based routing in front of CloudFront.
 - **Cost reduction**: Move Lambdas to ARM (Graviton2) — same performance, 20% cheaper. Use S3 Intelligent-Tiering instead of manual lifecycle rules.
+#
