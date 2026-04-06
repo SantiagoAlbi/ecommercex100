@@ -21,3 +21,16 @@ resource "aws_cognito_user_pool_client" "main" {
 
   explicit_auth_flows = ["ALLOW_USER_PASSWORD_AUTH", "ALLOW_REFRESH_TOKEN_AUTH"]
 }
+
+resource "aws_cognito_user" "test_user" {
+  user_pool_id = aws_cognito_user_pool.main.id
+  username     = "test@example.com"
+
+  attributes = {
+    email          = "test@example.com"
+    email_verified = "true"
+  }
+
+  temporary_password = "Test1234!"
+  message_action     = "SUPPRESS"
+}

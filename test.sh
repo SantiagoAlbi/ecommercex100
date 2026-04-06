@@ -39,8 +39,8 @@ TERRAFORM_DIR="$(dirname "$0")/terraform"
 
 API_ENDPOINT=$(terraform -chdir="$TERRAFORM_DIR" output -raw api_endpoint 2>/dev/null) \
   || fail "Could not read api_endpoint. Did you run terraform apply?"
-CLOUDFRONT_URL=$(terraform -chdir="$TERRAFORM_DIR" output -raw cloudfront_url 2>/dev/null) \
-  || fail "Could not read cloudfront_url"
+CLOUDFRONT_URL=$(terraform -chdir="$TERRAFORM_DIR" output -raw cloudfront_domain 2>/dev/null) \
+  || fail "Could not read cloudfront_domain"
 CLIENT_ID=$(terraform -chdir="$TERRAFORM_DIR" output -raw cognito_client_id 2>/dev/null) \
   || fail "Could not read cognito_client_id"
 TABLE_NAME=$(terraform -chdir="$TERRAFORM_DIR" output -raw dynamodb_table_name 2>/dev/null) \
@@ -104,10 +104,10 @@ ok "Authenticated as $COGNITO_USER"
 echo "   Token: ${TOKEN:0:40}..."
 echo ""
 
-# ─── step 3: get presigned upload url ────────
+# ─── step 2: get presigned upload url ────────
 info "Requesting presigned upload URL..."
 
-UPLOAD_RESPONSE=$(curl -sf -X POST "${API_ENDPOINT}/upload" \
+UPLOAD_RESPONSE=$(curl -sf -X POST "$API_ENDPOINT" \
   -H "Authorization: ${TOKEN}" \
   -H "Content-Type: application/json" \
   -d "{\"product_id\":\"${PRODUCT_ID}\",\"filename\":\"${FILENAME}\",\"content_type\":\"image/jpeg\"}" \
